@@ -4,7 +4,7 @@ import { RootState } from "../redux/store";
 import { addTask, deleteActiveTasks } from "../redux/slices/taskSlice";
 import TaskList from "../components/TaskList";
 import { Toaster, toast } from "sonner";
-import DeleteConfirmation from "@/features/deleteAll";
+import DeleteConfirmation from "../features/deleteAll";
 import Navbar from "@/components/Navbar";
 
 const Home = () => {
@@ -57,7 +57,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen min-w-[350px] bg-gray-200">
+    <div className="min-h-screen min-w-[380px] bg-gray-200">
       <Navbar />
       <div className="pt-0.5">
         <div className="flex justify-center mt-16">
@@ -98,12 +98,12 @@ const Home = () => {
             <Toaster richColors position="bottom-right" />
           </div>
         </div>
+        <DeleteConfirmation
+          confirmDelete={confirmDelete}
+          onCancel={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+        />
       </div>
-      <DeleteConfirmation
-        confirmDelete={confirmDelete}
-        onCancel={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-      />
     </div>
   );
 };

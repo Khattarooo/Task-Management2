@@ -6,13 +6,21 @@ interface Props {
   onConfirm: () => void;
 }
 
-const DeleteConfirmation: React.FC<Props> = ({ confirmDelete, onCancel, onConfirm }) => {
+const DeleteConfirmation: React.FC<Props> = ({
+  confirmDelete,
+  onCancel,
+  onConfirm,
+}) => {
   if (!confirmDelete) return null;
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-gray-800 bg-opacity-50 z-50">
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <p className="text-lg mb-4">
+    <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center z-50">
+      <div
+        className="fixed inset-0 bg-gray-800 opacity-50"
+        onClick={onCancel}
+      ></div>
+      <div className="absolute bg-white p-6 rounded-lg shadow-md">
+        <p className="text-lg mb-4 text-center">
           Are you sure you want to delete all tasks?
         </p>
         <div className="flex justify-center">
