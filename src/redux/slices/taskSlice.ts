@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface Task {
+export interface Task {
   id: string;
   title: string;
   completed: boolean;
@@ -21,25 +21,30 @@ export const taskSlice = createSlice({
     setTasks: (state, action: PayloadAction<Task[]>) => {
       state.tasks = action.payload;
     },
-    addTask: (
-      state,
-      action: PayloadAction<{ id: string; title: string; completed: boolean }>
-    ) => {
+    addTask: (state, action: PayloadAction<Task>) => {
       state.tasks.push(action.payload);
     },
-    toggleTaskCompletion: (state, action: PayloadAction<{ id: string }>) => {
-      const task = state.tasks.find((task) => task.id === action.payload.id);
+    toggleTaskCompletion: (state, action: PayloadAction<string>) => {
+      const task = state.tasks.find((task) => task.id === action.payload);
       if (task) {
         task.completed = !task.completed;
       }
     },
-    deleteTask: (state, action: PayloadAction<{ id: string }>) => {
-      state.tasks = state.tasks.filter((task) => task.id !== action.payload.id);
+    deleteTask: (state, action: PayloadAction<string>) => {
+      state.tasks = state.tasks.filter((task) => task.id !== action.payload);
+    },
+    deleteActiveTasks(state, action: PayloadAction<string>) {
+      state.tasks = state.tasks.filter(task => task.id !== action.payload);
     },
   },
 });
 
-export const { setTasks, addTask, toggleTaskCompletion, deleteTask } =
-  taskSlice.actions;
+export const {
+  setTasks,
+  addTask,
+  toggleTaskCompletion,
+  deleteTask,
+  deleteActiveTasks,
+} = taskSlice.actions;
 
 export default taskSlice.reducer;
