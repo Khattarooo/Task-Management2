@@ -1,7 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashAlt, faSpinner, faCheckCircle } from "@fortawesome/free-solid-svg-icons";
+import {
+  faTrashAlt,
+  faSpinner,
+  faCheckCircle,
+  faInfo,
+} from "@fortawesome/free-solid-svg-icons";
 import useTasks from "@/hooks/useTasks";
+import router from "next/router";
+import { toast } from "sonner";
+import DeleteTaskConfirmation from "@/features/deleteTask";
 
 interface Task {
   id: string;
@@ -14,8 +22,32 @@ interface TaskListProps {
 }
 
 const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
-  const { handleDeleteTask, handleToggleTaskCompletion, checkedTasks } = useTasks();
+  const { handleDeleteTask, handleToggleTaskCompletion, checkedTasks } =
+    useTasks();
   const pendingTasks = tasks.filter((task) => !task.completed);
+  const [confirmDeleteTask, setConfirmDeleteTask] = useState(false);
+  const [deleteTaskId, setDeleteTaskId] = useState("");
+
+  const handleDeleteTaskConfirmation = (taskId: string) => {
+    setConfirmDeleteTask(true);
+    setDeleteTaskId(taskId);
+  };
+
+  const handleTaskDetails = () => {
+    router.push("/taskdetails");
+    toast.loading("Loading Task Details");
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDeleteTask(false);
+    setDeleteTaskId("");
+  };
+
+  const handleConfirmDelete = () => {
+    handleDeleteTask(deleteTaskId);
+    setConfirmDeleteTask(false);
+    setDeleteTaskId("");
+  };
 
   return (
     <div className="grid grid-cols-1   sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-20">
@@ -53,16 +85,24 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
             <div className="flex justify-between items-center">
               <label className="flex items-center cursor-pointer">
                 <input
+                  id={task.id}
                   type="checkbox"
                   checked={checkedTasks.includes(task.id)}
                   onChange={() => handleToggleTaskCompletion(task)}
                   className="form-checkbox h-5 w-5 text-indigo-600 transition duration-150 ease-in-out"
                 />
-                <span className="ml-2"> Mark as Complete</span>
+                <span className="ml-2 mr-6"> Mark as Complete</span>
               </label>
+
               <button
-                onClick={() => handleDeleteTask(task.id)}
-                className="py-2 px-4 text-sm bg-red-500 hover:bg-red-600 text-white rounded shadow"
+                onClick={handleTaskDetails}
+                className="py-2 px-4 mr-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded shadow"
+              >
+                <FontAwesomeIcon icon={faInfo} />
+              </button>
+              <button
+                onClick={() => handleDeleteTaskConfirmation(task.id)}
+                className="py-2 px-4 ml-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded shadow"
               >
                 <FontAwesomeIcon icon={faTrashAlt} />
               </button>
@@ -70,6 +110,11 @@ const TaskList: React.FC<TaskListProps> = ({ tasks }) => {
           </div>
         ))
       )}
+      <DeleteTaskConfirmation
+        confirmDeleteTask={confirmDeleteTask}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

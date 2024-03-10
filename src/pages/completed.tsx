@@ -1,63 +1,42 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../redux/store";
-import { addTask, deleteActiveTasks } from "../redux/slices/taskSlice";
-import TaskList from "../components/TaskList";
+import { deleteActiveTasks } from "../redux/slices/taskSlice";
 import { Toaster, toast } from "sonner";
 import DeleteConfirmation from "../features/deleteAll";
 import Navbar from "@/components/Navbar";
+import CompletedTaskList from "../components/CompletedTaskList";
 
-const Home = () => {
+const Completed = () => {
   const dispatch = useDispatch();
   const tasks = useSelector((state: RootState) => state.tasks.tasks);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [showCompletedTasks, setShowCompletedTasks] = useState(false);
-
-  const pendingTasks = tasks.filter((task) => !task.completed);
+  const showCompletedTasks = useRef(true);
+  const completedTasks = tasks.filter((task) => task.completed);
 
   useEffect(() => {
-    document.title = "Active -Task Management";
+    document.title = "Completed Tasks - Task Management";
   }, [showCompletedTasks]);
 
-  const handleAddTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newTaskTitle.trim() === "") {
-      toast.error("Task title cannot be empty");
-      return;
-    }
-    dispatch(
-      addTask({
-        id: Math.random().toString(),
-        title: newTaskTitle,
-        completed: false,
-      })
-    );
-    setNewTaskTitle("");
-    setShowCompletedTasks(false);
-    toast.info("Task Created successfully");
-  };
-
   const handleDeleteAllTasks = () => {
-    if (!showCompletedTasks) {
-      if (pendingTasks.length > 0) {
+    if (showCompletedTasks) {
+      if (completedTasks.length > 0) {
         setConfirmDelete(true);
       } else {
-        toast.info("No pending tasks to delete");
+        toast.info("No completed tasks to delete");
       }
     }
   };
-
   const handleCancelDelete = () => {
     setConfirmDelete(false);
   };
 
   const handleConfirmDelete = () => {
-    if (!showCompletedTasks) {
-      pendingTasks.forEach((task) => {
+    if (showCompletedTasks) {
+      completedTasks.forEach((task) => {
         dispatch(deleteActiveTasks(task.id));
       });
-      toast.error("Pending tasks deleted successfully");
+      toast.error("Completed tasks deleted successfully");
     }
     setConfirmDelete(false);
   };
@@ -68,29 +47,24 @@ const Home = () => {
       <div className="pt-0.5">
         <div className="flex justify-center mt-20">
           <div className="w-11/12">
-            <form
-              id="add"
-              onSubmit={handleAddTask}
-              className="my-4 flex items-center"
-            >
+            <form id="add" className="my-4 flex items-center">
               <input
                 id="taskTitle"
                 type="text"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
                 placeholder="Enter new task title"
                 className="flex-auto min-w-[40px] shadow appearance-none border rounded py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
                 required
-                autoComplete="off"
+                disabled
               />
               <input
                 id="count"
                 type="text"
-                value={`${pendingTasks.length} In Progress `}
+                value={` ${completedTasks.length} Completed`}
                 readOnly
-                className="text-md  min-w-[5px] shadow ml-3 appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="text-md cursor-pointer min-w-[5px] shadow ml-3 appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
               <button
+                disabled
                 type="submit"
                 style={{ backgroundColor: "rgb(147 51 234)" }}
                 className="ml-2 inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 rounded-md text-white bg-indigo-600 hover:bg-indigo-500 focus:outline-none focus:border-indigo-700 focus:shadow-outline-indigo active:bg-indigo-700 transition duration-150 ease-in-out"
@@ -108,8 +82,7 @@ const Home = () => {
                 </button>
               )}
             </form>
-            <TaskList tasks={tasks} />
-
+            <CompletedTaskList tasks={completedTasks} />
             <Toaster richColors position="bottom-right" />
           </div>
         </div>
@@ -123,4 +96,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Completed;

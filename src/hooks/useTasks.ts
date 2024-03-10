@@ -1,12 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../redux/store";
-import {
-  deleteTask,
-  toggleTaskCompletion,
-  addTask,
-  deleteActiveTasks,
-} from "../redux/slices/taskSlice";
+import { deleteTask, toggleTaskCompletion } from "../redux/slices/taskSlice";
 import { toast } from "sonner";
 
 interface Task {
@@ -20,73 +15,55 @@ const useTasks = () => {
   const tasks = useSelector((state: RootState) => state.tasks.tasks);
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [pendingTasks, setPendingTasks] = useState<Task[]>([]);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-
-  //const [confirmDelete, setConfirmDelete] = useState(false);
-  const setConfirmDelete = useRef;
-
   const [checkedTasks, setCheckedTasks] = useState<string[]>([]);
   const [uncheckedTasks, setUncheckedTasks] = useState<string[]>([]);
 
-  const handleAddTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newTaskTitle.trim() === "") {
-      toast.error("Task title cannot be empty");
-      return;
-    }
-    dispatch(
-      addTask({
-        id: Math.random().toString(),
-        title: newTaskTitle,
-        completed: false,
-      })
-    );
-    setNewTaskTitle("");
-    toast.info("Task Created successfully");
-  };
+  // Here is an example of a infinit loop the function continuously calls
+  // itself without a termination condition, leading to an endless cycle
+  // and it continue to display the toast message after each iteration.
 
-  const handleDeleteAllTasks = () => {
-    if (completedTasks.length > 0) {
-      setConfirmDelete(true);
-    } else {
-      toast.info("No completed tasks to delete");
-    }
-  };
+  // const handleDeleteTask = (taskId: string) => {
+  //   setTimeout(() => {
+  //     handleDeleteTask(taskId);
+  //   }, 300);
+  //   toast.error("Task Deleted successfully");
+  // };
 
-  const handleCancelDelete = () => {
-    setConfirmDelete(false);
-  };
-
-  const handleConfirmDelete = () => {
-    completedTasks.forEach((task) => {
-      dispatch(deleteActiveTasks(task.id));
-    });
-    toast.error("Completed tasks deleted successfully");
-    setConfirmDelete(false);
-  };
+  // To fix this bug since we are working with Redux store we use dispatch
+  // to Trigger the deleteTask action and we pass to it the taskId and then
+  // it will be removed from the Redux store and display a success message
 
   const handleDeleteTask = (taskId: string) => {
-    dispatch(deleteTask(taskId));
-    toast.error("Task Deleted successfully");
+    const timeoutId = setTimeout(() => {
+      dispatch(deleteTask(taskId));
+      toast.error("Task Deleted successfully");
+    }, 300);
+    return () => clearTimeout(timeoutId);
   };
+
+  // And here at the same time we are using the component lifecycle methods,
+  // the return arrow function is used to clean up when a component unmounts
 
   const handleToggleTaskCompletion = (task: Task) => {
     const taskId = task.id;
     const updatedCheckedTasks = [taskId, ...checkedTasks];
     setCheckedTasks(updatedCheckedTasks);
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       dispatch(toggleTaskCompletion(taskId));
       toast.success("Task Completed successfully");
     }, 200);
+
+    return () => clearTimeout(timeoutId);
   };
 
   const handleTogglePending = (task: Task) => {
     const taskId = task.id;
     setUncheckedTasks([...uncheckedTasks, taskId]);
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       dispatch(toggleTaskCompletion(taskId));
       toast.success("Task marked as pending successfully");
     }, 300);
+    return () => clearTimeout(timeoutId);
   };
 
   useEffect(() => {
@@ -97,10 +74,6 @@ const useTasks = () => {
   }, [tasks]);
 
   return {
-    handleAddTask,
-    handleDeleteAllTasks,
-    handleCancelDelete,
-    handleConfirmDelete,
     completedTasks,
     pendingTasks,
     handleDeleteTask,
@@ -108,6 +81,7 @@ const useTasks = () => {
     handleTogglePending,
     checkedTasks,
     uncheckedTasks,
+    setPendingTasks,
   };
 };
 

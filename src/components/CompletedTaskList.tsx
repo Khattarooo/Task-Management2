@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTrashAlt,
   faSpinner,
   faCheckCircle,
+  faInfo,
 } from "@fortawesome/free-solid-svg-icons";
 import useTasks from "@/hooks/useTasks";
+import { useRouter } from "next/router";
+import { toast } from "sonner";
+import DeleteTaskConfirmation from "@/features/deleteTask";
 
 interface Task {
   id: string;
@@ -19,8 +23,31 @@ interface CompletedTaskListProps {
 
 const CompletedTaskList: React.FC<CompletedTaskListProps> = ({ tasks }) => {
   const { handleDeleteTask, handleTogglePending, uncheckedTasks } = useTasks();
-
+  const router = useRouter();
   const completedTasks = tasks.filter((task) => task.completed);
+  const [confirmDeleteTask, setConfirmDeleteTask] = useState(false);
+  const [deleteTaskId, setDeleteTaskId] = useState("");
+
+  const handleTaskDetails = () => {
+    router.push("/taskdetails");
+    toast.loading("Loading Task Details");
+  };
+
+  const handleDeleteTaskConfirmation = (taskId: string) => {
+    setConfirmDeleteTask(true);
+    setDeleteTaskId(taskId);
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmDeleteTask(false);
+    setDeleteTaskId("");
+  };
+
+  const handleConfirmDelete = () => {
+    handleDeleteTask(deleteTaskId);
+    setConfirmDeleteTask(false);
+    setDeleteTaskId("");
+  };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-20">
@@ -59,6 +86,7 @@ const CompletedTaskList: React.FC<CompletedTaskListProps> = ({ tasks }) => {
             <div className="flex justify-between items-center">
               <label className="flex items-center cursor-pointer">
                 <input
+                  id={task.id}
                   type="checkbox"
                   checked={!uncheckedTasks.includes(task.id)}
                   onChange={() => handleTogglePending(task)}
@@ -67,8 +95,14 @@ const CompletedTaskList: React.FC<CompletedTaskListProps> = ({ tasks }) => {
                 <span className="ml-2"> Mark as Pending</span>
               </label>
               <button
-                onClick={() => handleDeleteTask(task.id)}
-                className="py-2 px-4 text-sm bg-red-500 hover:bg-red-600 text-white rounded shadow"
+                onClick={handleTaskDetails}
+                className="py-2 px-4 mr-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded shadow"
+              >
+                <FontAwesomeIcon icon={faInfo} />
+              </button>
+              <button
+                onClick={() => handleDeleteTaskConfirmation(task.id)}
+                className="py-2 px-4 ml-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded shadow"
               >
                 <FontAwesomeIcon icon={faTrashAlt} />
               </button>
@@ -76,6 +110,11 @@ const CompletedTaskList: React.FC<CompletedTaskListProps> = ({ tasks }) => {
           </div>
         ))
       )}
+      <DeleteTaskConfirmation
+        confirmDeleteTask={confirmDeleteTask}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };
